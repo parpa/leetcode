@@ -1,4 +1,7 @@
 /*jshint esversion: 6 */
+console.time('someFunction');
+
+
 /**
  * @param {string} beginWord
  * @param {string} endWord
@@ -165,3 +168,6 @@ wordList=["ricky","grind","cubic","panic","lover","farce","gofer","sales","flint
 // wordList=["a","b","c"]
 
 console.log(findLadders(beginWord, endWord, wordList));
+
+
+console.timeEnd('someFunction');
