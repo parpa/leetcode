@@ -18,9 +18,54 @@ var findLadders = function(beginWord, endWord, wordList) {
     output.o[beginWord] = [[beginWord]];
     output.out = [];
     output.e = endWord;
+    output.wordList = [
+        // {   // 0,a
+        //     a:[
+        //         '_node(a..)'
+        //     ],
+            // 0,b
+        //     b:[
+        //         '_node(b..)'
+        //     ],
+        // },
+    ];
+    for (var i = 0; i < wordList.length; i++) {
+        let word = wordList[i];
+        let node = new _node(word);
+        for (var t = 0; t < word.length; t++) {
+            if (!output.wordList[t]) {
+                output.wordList[t] = {};
+            }
+            if (!output.wordList[t][word[t]]) {
+                output.wordList[t][word[t]] = [];
+            }
+
+            output.wordList[t][word[t]].push(node);
+
+        }
+    }
+    // return
+    // console.log(output.wordList);return;
     _findLadders(output,wordList);
     // console.log(output);
     return output.out;
+};
+
+var _node = function (value) {
+    this.value = value;
+};
+
+var _searchWordList = function (word, wordList) {
+    for (var i = 0; i < wordList.length; i++) {
+        // console.log('1',wordList[i], wordList[i].value);
+        if (!wordList[i].value) {
+            wordList.splice(i, 1);
+            i--;
+        } else if (wordList[i].value == word) {
+            return wordList[i];
+        }
+    }
+    return null;
 };
 
 /**
@@ -48,47 +93,54 @@ var _findLadders = function (output, wordList) {
     // console.log('_findLadders', Object.keys(output.o).length, wordList.length );
     let _output = {};
     let end = false;
-    for (let i = 0; i < wordList.length; i++) {
-        let worduse = false;
-        let usecount = 0;
+    let usdWordNode = [];
 
-        let word = wordList[i];
-        for (let checkword in output.o) {
+    for (let word in output.o) {
+        for (var i = 0; i < output.e.length; i++) {
 
-            if(_wordLike(checkword, word)) {
-                // console.log(checkword, word);
-                worduse = true;
-                usecount++;
-                _archive(_output, output.o[checkword], word);
-                if (output.e == word) {
-                    end = true;
+            for (var j = 'a'; j <= 'z'; j = String.fromCharCode(j.charCodeAt(0) + 1)) {
+                if (word[i] !== j && output.wordList[i][j] && output.wordList[i][j].length)  {
+                    let pool = output.wordList[i][j];
+                     var nextWord = word.substring(0, i) + j + word.substring(i + 1);
+                     let searchWord = _searchWordList(nextWord, pool);
+                     if (searchWord) {
+                         _archive(_output, output.o[word], nextWord);
+                         usdWordNode.push(searchWord);
+                         if (output.e == nextWord) {
+                             end = true;
+                         }
+                         // wordList.splice(point, 1);
+
+                     }
+
                 }
             }
         }
-        if (worduse) {
-            wordList.splice(i, 1);
-            // if (usecount>1) {
-                // console.log('usecount',usecount);
-            // }
-            i--;
-        }
+
+
+
     }
     if (end) {
         output.out = _output[output.e];
         return;
     }
+    for (let i = 0; i < usdWordNode.length; i++) {
+        let searchWord = usdWordNode[i];
+        searchWord.value = null;
+    }
     let size = Object.keys(_output).length;
-    if (size && wordList.length) {
+    if (size) {
         output.o = _output;
         _findLadders(output, wordList);
     }
+    return;
 
 };
 
 var _wordLike = function (worda,wordb) {
     let eq = 0;
     for (var i = 0; i < worda.length; i++) {
-        if (worda[i] != wordb[i]) {
+        if (worda.charAt(i) != wordb.charAt(i)) {
             eq++;
             if (eq > 1) {
                 return false;
