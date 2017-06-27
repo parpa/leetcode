@@ -124,18 +124,19 @@ var _findLadders = function(output) {
                     let lineWords = output.wordList[t][letter][key];
                     for (var i = 0; i < lineWords.length; i++) {
                         let nextWord = lineWords[i].value;
-                        // 记录使用过的节点，在一个数列的元素全部使用完后需要移除，避免变化逆反回去
-                        usdWordNode[nextWord] = lineWords[i];
+                        if (nextWord) {
+                            // 记录使用过的节点，在一个数列的元素全部使用完后需要移除，避免变化逆反回去
+                            usdWordNode[nextWord] = lineWords[i];
 
-                        // 相同数据变化无意义；数据可能在先前组已经被使用并且移除
-                        if (nextWord && nextWord != word) {
-                            _archive(_output, output.o[word][0], nextWord, t);
-                            if (output.e == nextWord) {
-                                // 一旦发现最后单词，那么本列处理完成后，就已经找完最短数据
-                                end = true;
+                            // 相同数据变化无意义；数据可能在先前组已经被使用并且移除
+                            if (nextWord != word) {
+                                _archive(_output, output.o[word][0], nextWord, t);
+                                if (output.e == nextWord) {
+                                    // 一旦发现最后单词，那么本列处理完成后，就已经找完最短数据
+                                    end = true;
+                                }
                             }
                         }
-
                     }
                 }
             }
