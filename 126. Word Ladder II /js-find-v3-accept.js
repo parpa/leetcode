@@ -7,37 +7,36 @@ console.time('someFunction');
  * @return {string[][]}
  */
 var findLadders = function(beginWord, endWord, wordList) {
-    let output = {};
+    let prame = {};
     // 使用字典，按照最后一次加入的数据进行归类。
     // {'key':[
     // 0 string[][]
     // 1 int[]  从第几个位置添加进入的
     // [['word1'], ['word2']], [-1]
     // ]}
-    output.o = {};
-    output.o[beginWord] = [
+    prame.o = {};
+    prame.o[beginWord] = [
         [
             [beginWord]
         ],
         [-1]
     ];
-    output.out = [];
-    output.s = beginWord;
-    output.e = endWord;
-    output.wordList = _indexWordList(output, wordList);
-    if (!output.wordList) {
-        return output.out;
+    prame.out = [];
+    prame.e = endWord;
+    prame.wordList = _indexWordList(beginWord, endWord, wordList);
+    if (!prame.wordList) {
+        return prame.out;
     }
-    _findLadders(output);
-    // console.log(output);
-    return output.out;
+    _findLadders(prame);
+    // console.log(prame);
+    return prame.out;
 };
 
 var _node = function(value) {
     this.value = value;
 };
 
-var _indexWordList = function(output, wordList) {
+var _indexWordList = function(beginWord, endWord, wordList) {
     // 构建一个反向索引列表，首先按忽略位拆分，再按首字母索引
     // 这样会构建一个5倍于原始数据大小的新字典表
     // [
@@ -48,10 +47,10 @@ var _indexWordList = function(output, wordList) {
     let findEnd = false;
     for (var i = 0; i < wordList.length; i++) {
         let word = wordList[i];
-        if (word === output.s) {
+        if (word === beginWord) {
             // 开始字符串不需要
             continue;
-        } else if (word === output.e) {
+        } else if (word === endWord) {
             findEnd = true;
         }
         let node = new _node(word);
@@ -82,19 +81,19 @@ var _indexWordList = function(output, wordList) {
 };
 
 /**
- * @param {object} output
+ * @param {object} prame
  * @param {string[][]} lines
  * @param {string} word
  * @param {int} word
  */
-var _archive = function(output, lines, word, point) {
-    if (!output.hasOwnProperty(word)) {
+var _archive = function(prame, lines, word, point) {
+    if (!prame.hasOwnProperty(word)) {
         // {'key':[
         // 0 string[][]
         // 1 int[]  从第几个位置添加进入的
         // [['word1'], ['word2']], [-1]
         // ]}
-        output[word] = [
+        prame[word] = [
             [],
             []
         ];
@@ -103,25 +102,25 @@ var _archive = function(output, lines, word, point) {
         // clone
         let line = lines[i].slice(0);
         line.push(word);
-        output[word][0].push(line);
+        prame[word][0].push(line);
     }
-    output[word][1].push(point);
-    // console.log(word, output[word][0]);
+    prame[word][1].push(point);
+    // console.log(word, prame[word][0]);
 };
 
-var _findLadders = function(output) {
-    let _output = {};
+var _findLadders = function(prame) {
+    let _operate = {};
     let end = false;
     let usdWordNode = {};
 
-    for (let word in output.o) {
+    for (let word in prame.o) {
         for (let t = 0; t < word.length; t++) {
             // 从同一个位置变化过来的，不需要在检查同一个位置而变化回去
-            if (output.o[word][1].indexOf(t) == -1) {
+            if (prame.o[word][1].indexOf(t) == -1) {
                 let key = word.substring(0, t) + t + word.substring(t + 1);
                 let letter = t === 0 ? word[1] : word[0];
-                if (output.wordList[t][letter] && output.wordList[t][letter][key]) {
-                    let lineWords = output.wordList[t][letter][key];
+                if (prame.wordList[t][letter] && prame.wordList[t][letter][key]) {
+                    let lineWords = prame.wordList[t][letter][key];
                     for (var i = 0; i < lineWords.length; i++) {
                         let nextWord = lineWords[i].value;
                         if (nextWord) {
@@ -130,8 +129,8 @@ var _findLadders = function(output) {
 
                             // 相同数据变化无意义；数据可能在先前组已经被使用并且移除
                             if (nextWord != word) {
-                                _archive(_output, output.o[word][0], nextWord, t);
-                                if (output.e == nextWord) {
+                                _archive(_operate, prame.o[word][0], nextWord, t);
+                                if (prame.e == nextWord) {
                                     // 一旦发现最后单词，那么本列处理完成后，就已经找完最短数据
                                     end = true;
                                 }
@@ -143,7 +142,7 @@ var _findLadders = function(output) {
         }
     }
     if (end) {
-        output.out = _output[output.e][0];
+        prame.out = _operate[prame.e][0];
         return;
     }
     for (let key in usdWordNode) {
@@ -151,10 +150,10 @@ var _findLadders = function(output) {
         let wordnote = usdWordNode[key];
         wordnote.value = null;
     }
-    let size = Object.keys(_output).length;
+    let size = Object.keys(_operate).length;
     if (size) {
-        output.o = _output;
-        _findLadders(output);
+        prame.o = _operate;
+        _findLadders(prame);
     }
     return;
 };
