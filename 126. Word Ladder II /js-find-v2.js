@@ -15,7 +15,7 @@ var findLadders = function(beginWord, endWord, wordList) {
     // 使用字典，按照最后一次加入的数据进行归类。
     // {'key':[['word1'], ['word2']]}
     output.o = {};
-    output.o[beginWord] = [[beginWord]];
+    output.o[beginWord] = [[[beginWord]], [-1]];
     output.out = [];
     output.e = endWord;
     output.wordList = [
@@ -46,7 +46,7 @@ var findLadders = function(beginWord, endWord, wordList) {
     }
     // return
     // console.log(output.wordList);return;
-    _findLadders(output,wordList);
+    _findLadders(output,null);
     // console.log(output);
     return output.out;
 };
@@ -73,19 +73,23 @@ var _searchWordList = function (word, wordList) {
  * @param {[][]} lines
  * @param {string} word
  */
-var _archive = function (output, lines, word) {
+var _archive = function (output, lines, word, point) {
+    // console.log(output);
     // console.log(lines.length);
     if (!output.hasOwnProperty(word)) {
         // {'key':[['word1'], ['word2']]}
-        output[word] = [];
+        output[word] = [
+            [],[]
+        ];
     }
     for (var i = 0; i < lines.length; i++) {
         // clone
         let line = lines[i].slice(0);
         line.push(word);
-        output[word].push(line);
+        output[word][0].push(line);
     }
-    // console.log(output);
+    output[word][1].push(point);
+    // console.log(word, output[word][0]);
 
 };
 
@@ -93,39 +97,44 @@ var _findLadders = function (output, wordList) {
     // console.log('_findLadders', Object.keys(output.o).length, wordList.length );
     let _output = {};
     let end = false;
-    let usdWordNode = [];
+    let usdWordNode = {};
 
     for (let word in output.o) {
         for (var i = 0; i < output.e.length; i++) {
+            if (output.o[word][1].indexOf(i) == -1) {
+                for (var j = 'a'; j <= 'z'; j = String.fromCharCode(j.charCodeAt(0) + 1)) {
+                    if (word[i] !== j && output.wordList[i][j] && output.wordList[i][j].length)  {
+                        let pool = output.wordList[i][j];
+                         var nextWord = word.substring(0, i) + j + word.substring(i + 1);
+                         let searchWord = _searchWordList(nextWord, pool);
+                         if (searchWord) {
+                             _archive(_output, output.o[word][0], nextWord, i);
+                            //  usdWordNode.push(searchWord);
+                             usdWordNode[nextWord] = searchWord;
+                             if (output.e == nextWord) {
+                                 end = true;
+                             }
+                             // wordList.splice(point, 1);
 
-            for (var j = 'a'; j <= 'z'; j = String.fromCharCode(j.charCodeAt(0) + 1)) {
-                if (word[i] !== j && output.wordList[i][j] && output.wordList[i][j].length)  {
-                    let pool = output.wordList[i][j];
-                     var nextWord = word.substring(0, i) + j + word.substring(i + 1);
-                     let searchWord = _searchWordList(nextWord, pool);
-                     if (searchWord) {
-                         _archive(_output, output.o[word], nextWord);
-                         usdWordNode.push(searchWord);
-                         if (output.e == nextWord) {
-                             end = true;
                          }
-                         // wordList.splice(point, 1);
 
-                     }
-
+                    }
                 }
             }
+
+
         }
 
 
 
     }
     if (end) {
-        output.out = _output[output.e];
+        output.out = _output[output.e][0];
         return;
     }
-    for (let i = 0; i < usdWordNode.length; i++) {
-        let searchWord = usdWordNode[i];
+    // console.log(Object.keys(usdWordNode).length);
+    for (let key in usdWordNode) {
+        let searchWord = usdWordNode[key];
         searchWord.value = null;
     }
     let size = Object.keys(_output).length;
@@ -135,19 +144,6 @@ var _findLadders = function (output, wordList) {
     }
     return;
 
-};
-
-var _wordLike = function (worda,wordb) {
-    let eq = 0;
-    for (var i = 0; i < worda.length; i++) {
-        if (worda.charAt(i) != wordb.charAt(i)) {
-            eq++;
-            if (eq > 1) {
-                return false;
-            }
-        }
-    }
-    return true;
 };
 
 beginWord="nanny"
